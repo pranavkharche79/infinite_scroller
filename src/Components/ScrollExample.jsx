@@ -1,63 +1,43 @@
 import React, { useState, useEffect, useRef } from "react";
+import InfiniteScroll from "react-infinite-scroll-component";
 import { RotatingLines } from "react-loader-spinner";
 
 export default function ScrollExample() {
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(1);
-  const loaderRef = useRef(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     // Fetch initial data
     fetchData();
-
-    // Initialize IntersectionObserver
-    const observer = new IntersectionObserver(handleObserver, {
-      root: null,
-      rootMargin: "20px",
-      threshold: 0.5,
-    });
-
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
-    }
-
-    // Clean up
-    return () => observer.disconnect();
   }, []);
 
   const fetchData = async () => {
-    setIsLoading(true);
     setTimeout(async () => {
       const response = await fetch(
         `https://jsonplaceholder.typicode.com/posts?_page=${page}&_limit=10`
       );
       const data = await response.json();
-      setPosts((prevPosts) => [...prevPosts, ...data]);
-      setPage((prevPage) => prevPage + 1);
-      setIsLoading(false);
-    }, 3000);
-  };
-
-  const handleObserver = (entries) => {
-    const target = entries[0];
-    if (target.isIntersecting) {
-      fetchData();
-    }
+      console.log("data= ", data, "page= ", page);
+      if (data.length === 0) {
+        setHasMore(false);
+      }
+      if (page === 1) {
+        setPosts(data);
+      } else {
+        setPosts((prevPosts) => [...prevPosts, ...data]);
+      }
+      setPage(page + 1);
+    }, 1500);
   };
 
   return (
     <div className="infinite-scroll-container">
-      {posts.map((post) => (
-        <div key={post.id} className="post">
-          <h2>{post.title}</h2>
-          <p>{post.body}</p>
-          <hr />
-        </div>
-      ))}
-      <div ref={loaderRef}></div>
-      {isLoading && (
-        <>
+      <InfiniteScroll
+        dataLength={posts.length}
+        next={fetchData}
+        hasMore={hasMore}
+        loader={
           <div
             style={{
               display: "flex",
@@ -73,8 +53,18 @@ export default function ScrollExample() {
               visible={true}
             />
           </div>
-        </>
-      )}
+        }
+        scrollThreshold={0.5}
+      >
+        {posts.map((post, index) => (
+          <div key={post.id} className="post">
+            <h2>{index + 1}</h2>
+            <h2>{post.title}</h2>
+            <p>{post.body}</p>
+            <hr />
+          </div>
+        ))}
+      </InfiniteScroll>
     </div>
   );
 }

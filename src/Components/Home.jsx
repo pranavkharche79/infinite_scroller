@@ -22,6 +22,17 @@ export default function Home() {
         <button
           class="p-3 mb-2 bg-warning text-dark"
           onClick={() => {
+            navigate("/axiosloading");
+          }}
+          type="button"
+        >
+          Loading with axios interceptors
+        </button>
+        <br />
+        <br />
+        <button
+          class="p-3 mb-2 bg-info text-white"
+          onClick={() => {
             navigate("/allloaders");
           }}
           type="button"
